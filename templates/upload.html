@@ -1,0 +1,50 @@
+<!-- /views/upload.html -->
+<html>
+
+<head>
+    <title>DropzoneJS Uploader</title>
+
+    <!-- 1 -->
+    <link href="{{ url_for('static', filename='css/dropzone.css') }}" type="text/css" rel="stylesheet" />
+
+    <!-- 2 -->
+    <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
+</head>
+
+<body>
+
+    <!-- 3 -->
+    <form action="/upload" method="POST" class="dropzone" id="uploadFiles">
+        <label for="media-type">Media Type</label>
+        <select name="media-type">
+            <option value="tv">TV Show</option>
+            <option value="movie">Movie</option>
+        </select>
+        <span id="tmp-path"></span>
+        <div class="fallback">
+            <input name="file" type="file" multiple />
+            <input type="submit" value="Upload" />
+        </div>
+    </form>
+
+    <script>
+        //Dropzone.autoDiscover = false;
+
+        Dropzone.options.uploadFiles = {
+            init: function () {
+                this.on("sendingmultiple", function (files) {
+                    document.getElementById(`tmp-path`).innerHTML = ''
+                    for(let i = 0; i < files.length; i++){
+                        file = files[i]
+                        console.log(file.fullPath)
+                        document.getElementById(`tmp-path`).innerHTML += `<input type="hidden" name="path-${i}" value="${file.fullPath}" />`
+                    }
+
+                });
+            }
+        }
+
+    </script>
+</body>
+
+</html>
