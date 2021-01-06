@@ -12,10 +12,10 @@
 </head>
 
 <body>
-<div id="explanation">
-    <div id="movies">
-        <h2>Movies</h2>
-        <pre>
+    <div id="explanation">
+        <div id="movies">
+            <h2>Movies</h2>
+            <pre>
             <code>
                 /Avatar (2009)
                     Avatar (2009).mkv
@@ -25,10 +25,10 @@
                     poster.jpg
             </code>
         </pre>
-    </div>
-    <div id="tv">
-        <h2>TV Shows</h2>
-        <pre>
+        </div>
+        <div id="tv">
+            <h2>TV Shows</h2>
+            <pre>
             <code>
                 /Rick and Morty
                     /Season 02
@@ -37,13 +37,13 @@
                         Rick and Morty - s02e03.m4v
             </code>
         </pre>
-    </div>
+        </div>
 
-</div>
+    </div>
     <!-- 3 -->
     <form action="/upload" method="POST" class="dropzone" id="uploadFiles">
         <label for="media-type">Media Type</label>
-        <select name="media-type">
+        <select name="media-type" id="media-type">
             <option value="tv">TV Show</option>
             <option value="movie">Movie</option>
         </select>
@@ -53,6 +53,12 @@
             <input type="submit" value="Upload" />
         </div>
     </form>
+    <div id="uploaded-files">
+        <h2>Processed Files</h2>
+        <ul id="file-list">
+
+        </ul>
+    </div>
 
     <script>
         //Dropzone.autoDiscover = false;
@@ -61,16 +67,38 @@
             init: function () {
                 this.on("sendingmultiple", function (files) {
                     document.getElementById(`tmp-path`).innerHTML = ''
-                    for(let i = 0; i < files.length; i++){
+                    for (let i = 0; i < files.length; i++) {
                         file = files[i]
                         console.log(file.fullPath)
-                        document.getElementById(`tmp-path`).innerHTML += `<input type="hidden" name="path-${i}" value="${file.fullPath}" />`
+                        document.getElementById(`tmp-path`).innerHTML +=
+                            `<input type="hidden" name="path-${i}" value="${file.fullPath}" />`
                     }
+                    this.on("completemultiple", function (files) {
+                        var request = new XMLHttpRequest()
+                        request.open('GET', window.location.toString() + 'process?media_type=' +
+                            document.getElementById('media-type').value, true)
+
+                        request.onload = function () {
+                            // Begin accessing JSON data here
+                            var data = JSON.parse(this.response)
+
+                            data.forEach((file) => {
+                                document.getElementById("file-list").append(
+                                    document.createElement('li').innerHTML = file
+                                )
+                                // Log each movie's title
+                                //console.log(movie.title)
+                            })
+                        }
+
+                        // Send request
+                        request.send()
+                        //window.location.href = window.location.toString() + 'process?media_type=' + document.getElementById('media-type').value
+                    })
 
                 });
             }
         }
-
     </script>
 </body>
 
