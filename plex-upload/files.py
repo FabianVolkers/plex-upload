@@ -3,28 +3,21 @@ import os
 import re
 import shutil
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import (Blueprint, Flask, current_app, flash, redirect,
+                   render_template, request, url_for)
 from tvnamer.tvnamer_exceptions import (NoValidFilesFoundError,
                                         SkipBehaviourAbort, UserAbort)
 from werkzeug.utils import secure_filename
 
-from tv import detect_shows
+from .tv import detect_shows
 
-UPLOAD_FOLDER = os.path.abspath('./uploads')
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+bp = Blueprint('files', __name__, url_prefix='/files')
 
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['PLEX_MOVIE_FOLDER'] = os.path.abspath('./plex/movies')
-app.config['PLEX_TV_FOLDER'] = os.path.abspath('./plex/tv')
-
-@app.route('/', methods=['GET'])
-def upload_form():
-    return render_template('upload.html')
-
-@app.route('/upload', methods=['POST'])
+@bp.route('/upload', methods=['POST'])
 def upload():
     media_type = request.form['media-type']
+
+    UPLOAD_FOLDER = current_app.config['UPLOAD_FOLDER']
     for i in range(len(request.files)):
         name, ext = os.path.splitext(request.form[f'path-{i}'])
         filename = f"{media_type}/{name.title()}{ext}"
@@ -40,18 +33,19 @@ def upload():
             print(filename)
 
         dirs = filename.split('/')
+        
         if len(dirs) > 1:
-            os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], "/".join(dirs[:-1])), exist_ok=True)
+            os.makedirs(os.path.join(UPLOAD_FOLDER, "/".join(dirs[:-1])), exist_ok=True)
 
 
         if file and filename:
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
 
     #process_uploads(media_type=media_type)
 
     return("Uploaded Files")
 
-@app.route('/process', methods=['GET'])
+@bp.route('/process', methods=['GET'])
 def process_uploads(media_type=None):
     # connect google drive / plex library folder
     if media_type == None:
@@ -59,7 +53,9 @@ def process_uploads(media_type=None):
     
     dry_run = bool(request.args['dry_run'])
     #media_type = 'movie' #request.data['media_type']
-    UPLOADS = os.path.join(app.config['UPLOAD_FOLDER'], media_type)
+    UPLOADS = os.path.join(current_app.config['UPLOAD_FOLDER'], media_type)
+    MOVIES = current_app.config['PLEX_MOVIE_FOLDER']
+    TV_SHOWS = current_app.config['PLEX_TV_FOLDER']
 
     if media_type == 'movie':
         # move uploaded file to plex/movies
@@ -67,7 +63,8 @@ def process_uploads(media_type=None):
         errs = []
         for dir in dirs:
             try:
-                shutil.move(os.path.join(UPLOADS, dir), app.config['PLEX_MOVIE_FOLDER'])
+                
+                shutil.move(os.path.join(UPLOADS, dir), MOVIES)
             except shutil.Error as e:
                 dirs.remove(dir) 
                 errs.append(str(e))
@@ -76,7 +73,7 @@ def process_uploads(media_type=None):
         return {
             "files": dirs,
             "errors": errs,
-            "plex_url": "https://app.plex.tv/desktop#!/media/d391e47fb3d0e2f458f498e7a5dbf6b20f3ec2b4/com.plexapp.plugins.library?key=%2Flibrary%2Fsections%2F1%2Fall%3Fsort%3DaddedAt%3Adesc&title=Recently%20Added%20in%20Films&context=source%3Ahub.movie.recentlyadded&pageType=list&source=1"
+            "plex_url": current_app.config['PLEX_MOVIE_URL']
             }
 
     elif media_type == 'tv':
@@ -95,8 +92,9 @@ def process_uploads(media_type=None):
         if not dry_run:
             for episode in episodes:
                 if episode.seriesname:
+                    
                     dest_dir = os.path.join(
-                        app.config['PLEX_TV_FOLDER'],
+                        TV_SHOWS,
                         episode.seriesname.lower(),
                         "season_{:02d}".format(episode.seasonnumber)
                         )
@@ -120,11 +118,10 @@ def process_uploads(media_type=None):
         return {
             "files": episodes_response,
             "errors": [],
-            "plex_url": "https://app.plex.tv/desktop#!/media/d391e47fb3d0e2f458f498e7a5dbf6b20f3ec2b4/com.plexapp.plugins.library?key=%2Fhubs%2Fhome%2FrecentlyAdded%3Ftype%3D2%26sectionID%3D2&title=Recently%20Added%20in%20TV%20programmes&context=source%3Ahub.tv.recentlyadded&pageType=list&source=2"
+            "plex_url": current_app.config['PLEX_TV_URL']
             }
 
 
     else:
         return 'Unsupported media type'
 
-    
