@@ -15,10 +15,19 @@ from tvnamer.tvnamer_exceptions import (DataRetrievalError,
                                         ShowNotFound, SkipBehaviourAbort,
                                         UserAbort)
 from tvnamer.unicode_helper import p
-from tvnamer.utils import warn
+
+import tvnamer.utils
 
 LOG = logging.getLogger(__name__)
 TVNAMER_API_KEY = "fb51f9b848ffac9750bada89ecba0225"
+
+errors = []
+
+def warn(text):
+    errors.append(text)
+
+
+tvnamer.utils.warn = warn
 
 def tvnamer(paths):
     """Main tvnamer function, takes an array of paths, does stuff.
