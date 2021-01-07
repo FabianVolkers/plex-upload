@@ -50,7 +50,7 @@ def process_uploads(media_type=None):
     if media_type == None:
         media_type = request.args['media_type']
     
-    dry_run = bool(request.args['dry_run'])
+    dry_run = bool(int(request.args['dry_run']))
 
     #media_type = 'movie' #request.data['media_type']
     UPLOADS = os.path.join(current_app.config['UPLOAD_FOLDER'], media_type)
@@ -96,8 +96,9 @@ def process_uploads(media_type=None):
 
         # move uploaded file to plex folder
         if not dry_run:
+
             for episode in episodes:
-                if episode.seriesname:
+                if episode.generatedfilename:
                     
                     dest_dir = os.path.join(
                         TV_SHOWS,
@@ -108,7 +109,7 @@ def process_uploads(media_type=None):
                     os.makedirs(dest_dir, exist_ok=True)
 
                     parent_dir = "/".join(episode.fullpath.split("/")[:-1])
-                    filename = episode.generateFilename()
+                    filename = episode.generatedfilename
                     fullpath = os.path.join(parent_dir, filename)
 
                     shutil.move(fullpath, os.path.join(dest_dir, filename))
