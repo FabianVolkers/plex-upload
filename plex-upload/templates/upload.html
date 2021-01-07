@@ -6,16 +6,20 @@
 
     <!-- 1 -->
     <link href="{{ url_for('static', filename='css/dropzone.css') }}" type="text/css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/styles.css') }}" type="text/css" rel="stylesheet" />
 
     <!-- 2 -->
     <script src="{{ url_for('static', filename='js/dropzone.js') }}"></script>
 </head>
 
 <body>
-    <div id="explanation">
-        <div id="movies">
-            <h2>Movies</h2>
-            <pre>
+    <div id="wrapper">
+
+
+        <div id="explanation">
+            <div id="movies">
+                <h2>Movies</h2>
+                <pre>
             <code>
                 /Avatar (2009)
                     Avatar (2009).mkv
@@ -25,10 +29,10 @@
                     poster.jpg
             </code>
         </pre>
-        </div>
-        <div id="tv">
-            <h2>TV Shows</h2>
-            <pre>
+            </div>
+            <div id="tv">
+                <h2>TV Shows</h2>
+                <pre>
             <code>
                 /Rick and Morty
                     /Season 02
@@ -37,76 +41,77 @@
                         Rick and Morty - s02e03.m4v
             </code>
         </pre>
+            </div>
+
+        </div>
+        <!-- 3 -->
+        <div id="dropzone-div">
+            <form action="/files/upload" method="POST" class="dropzone" id="uploadFiles">
+                <label for="media-type">Media Type</label>
+                <select name="media-type" id="media-type">
+                    <option value="tv">TV Show</option>
+                    <option value="movie">Movie</option>
+                </select>
+                <span id="tmp-path"></span>
+                <div class="fallback">
+                    <input name="file" type="file" multiple />
+                    <input type="submit" value="Upload" />
+                </div>
+            </form>
         </div>
 
-    </div>
-    <!-- 3 -->
-    <form action="/files/upload" method="POST" class="dropzone" id="uploadFiles">
-        <label for="media-type">Media Type</label>
-        <select name="media-type" id="media-type">
-            <option value="tv">TV Show</option>
-            <option value="movie">Movie</option>
-        </select>
-        <span id="tmp-path"></span>
-        <div class="fallback">
-            <input name="file" type="file" multiple />
-            <input type="submit" value="Upload" />
+        <div hidden id="uploaded-files">
+            <h2>Uploaded Files</h2>
+            <ul id="uploaded-files-list">
+
+            </ul>
+            <h3>Errors</h3>
+            <ul id="errors-list">
+
+            </ul>
+            <form action="/files/process" id="confirm-parsing-form">
+                <input type='hidden' name='dry_run' value='0' />
+                <input type='hidden' name='media_type' value='tv' />
+                <input type="submit" id="confirm-parsing-btn" value="Confirm" />
+            </form>
+
         </div>
-    </form>
-    <div hidden id="uploaded-files">
-        <h2>Uploaded Files</h2>
-        <ul id="uploaded-files-list">
+        <div hidden id="processed-files">
+            <h2>Processed Files</h2>
+            <ul id="processed-files-list">
 
-        </ul>
-        <h3>Errors</h3>
-        <ul id="errors-list">
-
-        </ul>
-        <form action="/files/process" id="confirm-parsing-form">
-            <input type='hidden' name='dry_run' value='0' />
-            <input type='hidden' name='media_type' value='tv' />
-            <input type="submit" id="confirm-parsing-btn" value="Confirm" />
-        </form>
-
+            </ul>
+            <p><a id="plex-url">View on Plex</a> (could take a few minutes to show up)</p>
+        </div>
     </div>
-    <div hidden id="processed-files">
-        <h2>Processed Files</h2>
-        <ul id="processed-files-list">
-
-        </ul>
-        <p><a id="plex-url">View on Plex</a> (could take a few minutes to show up)</p>
-    </div>
-
     <script>
         //Dropzone.autoDiscover = false;
-        document.getElementById('confirm-parsing-btn').addEventListener("click", function (event) {
+        document.getElementById('confirm-parsing-btn').addEventListener("click", async function (event) {
             event.preventDefault()
             document.getElementById('uploaded-files').setAttribute(
                 'hidden', true)
             document.getElementById('processed-files').removeAttribute(
                 'hidden')
 
-            var request = new XMLHttpRequest()
-            request.open('GET', window.location.toString() + 'files/process?dry_run=0&media_type=' +
-                document.getElementById('media-type').value, true)
+            let response = await makeRequest('GET', window.location.toString() +
+                'files/process?dry_run=0&media_type=' +
+                document.getElementById('media-type').value)
 
-            request.onload = function () {
-                // Begin accessing JSON data here
-                var data = JSON.parse(this.response)
 
-                document.getElementById('plex-url').setAttribute('href', data.plex_url)
-                console.log(data)
-                data.files.forEach((file) => {
-                    document.getElementById("processed-files-list").append(
-                        document.createElement('li').innerHTML = file
-                    )
-                    // Log each movie's title
-                    //console.log(movie.title)
-                })
-            }
+            // Begin accessing JSON data here
 
-            // Send request
-            request.send()
+            var data = JSON.parse(response)
+
+            document.getElementById('plex-url').setAttribute('href', data.plex_url)
+            console.log(data)
+            data.files.forEach((file) => {
+                let li = document.createElement('li');
+                li.innerText = file
+                document.getElementById("processed-files-list").append(li);
+                // Log each movie's title
+                //console.log(movie.title)
+            })
+
 
         })
 
@@ -152,10 +157,13 @@
                     }
                 });
 
-                this.on("totaluploadprogress", async function (totalPercentage,
-                    totalBytesToBeSent, totalBytesSent) {
-                    if (totalPercentage >= 100 && totalBytesSent) {
-                        console.log("Calling API")
+                this.on("completemultiple", async function (files) {
+                    if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length ===
+                        0) {
+
+
+                        console.log(this.getUploadingFiles())
+                        console.log(this.getQueuedFiles())
                         removeAllChildNodes(document.getElementById(
                             "uploaded-files-list"))
                         removeAllChildNodes(document.getElementById(
@@ -201,9 +209,7 @@
                             document.getElementById("errors-list")
                                 .append(li)
                         })
-
                     }
-
                 });
             }
         }
