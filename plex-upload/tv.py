@@ -7,7 +7,7 @@ from tvdb_api import Tvdb
 from tvnamer.compat import PY2, raw_input
 from tvnamer.config import Config
 from tvnamer.config_defaults import defaults
-from tvnamer.main import FileParser, findFiles
+from tvnamer.main import FileParser, findFiles, doRenameFile
 from tvnamer.tvnamer_exceptions import (DataRetrievalError,
                                         EpisodeNameNotFound, EpisodeNotFound,
                                         InvalidFilename, InvalidPath,
