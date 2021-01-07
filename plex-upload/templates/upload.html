@@ -58,12 +58,16 @@
         <ul id="uploaded-files-list">
 
         </ul>
+        <h3>Errors</h3>
+        <ul id="errors-list">
+
+        </ul>
         <form action="/files/process" id="confirm-parsing-form">
             <input type='hidden' name='dry_run' value='0' />
             <input type='hidden' name='media_type' value='tv' />
-            <input type="submit" id="confirm-parsing-btn" value="Confirm"/>
+            <input type="submit" id="confirm-parsing-btn" value="Confirm" />
         </form>
-        
+
     </div>
     <div hidden id="processed-files">
         <h2>Processed Files</h2>
@@ -78,9 +82,9 @@
         document.getElementById('confirm-parsing-btn').addEventListener("click", function (event) {
             event.preventDefault()
             document.getElementById('uploaded-files').setAttribute(
-                                'hidden', true)
+                'hidden', true)
             document.getElementById('processed-files').removeAttribute(
-                                'hidden')
+                'hidden')
 
             var request = new XMLHttpRequest()
             request.open('GET', window.location.toString() + 'files/process?dry_run=0&media_type=' +
@@ -105,6 +109,37 @@
             request.send()
 
         })
+
+        function removeAllChildNodes(parent) {
+            while (parent.firstChild) {
+                console.log(parent.removeChild(parent.firstChild))
+            }
+        }
+
+        function makeRequest(method, url) {
+            return new Promise(function (resolve, reject) {
+                let xhr = new XMLHttpRequest();
+                xhr.open(method, url);
+                xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(xhr.response);
+                    } else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText
+                        });
+                    }
+                };
+                xhr.onerror = function () {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                };
+                xhr.send();
+            });
+        }
+
         Dropzone.options.uploadFiles = {
             init: function () {
                 this.on("sendingmultiple", function (files) {
@@ -115,42 +150,59 @@
                         document.getElementById(`tmp-path`).innerHTML +=
                             `<input type="hidden" name="path-${i}" value="${file.fullPath}" />`
                     }
-                    this.on("completemultiple", function (files) {
-                        var request = new XMLHttpRequest()
-                        request.open('GET', window.location.toString() +
-                            'files/process?dry_run=1&media_type=' +
-                            document.getElementById('media-type').value, true)
+                });
 
-                        request.onload = function () {
-                            if (document.getElementById('media-type').value =='movie') {
-                                document.getElementById('confirm-parsing-form').style = "display: none;"
-                            }
-                            document.getElementById('uploaded-files').removeAttribute(
-                                'hidden')
-                            // Begin accessing JSON data here
-                            var data = JSON.parse(this.response)
+                this.on("totaluploadprogress", async function (totalPercentage,
+                    totalBytesToBeSent, totalBytesSent) {
+                    if (totalPercentage >= 100 && totalBytesSent) {
+                        console.log("Calling API")
+                        removeAllChildNodes(document.getElementById(
+                            "uploaded-files-list"))
+                        removeAllChildNodes(document.getElementById(
+                            "errors-list"))
 
-                            document.getElementById('plex-url').setAttribute('href', data
-                                .plex_url)
-                            console.log(data)
-                            data.files.forEach((file) => {
-                                document.getElementById("uploaded-files-list").append(
-                                    document.createElement('li').innerHTML =
-                                    file
-                                )
-                            })
-                            data.errors.forEach((error) => {
-                                document.getElementById("uploaded-files-list").append(
-                                    document.createElement('li').innerHTML =
-                                    error
-                                )
-                            })
+
+
+                        if (document.getElementById('media-type').value ==
+                            'movie') {
+                            document.getElementById('confirm-parsing-form')
+                                .style =
+                                "display: none;"
                         }
 
-                        // Send request
-                        request.send()
-                        //window.location.href = window.location.toString() + 'process?media_type=' + document.getElementById('media-type').value
-                    })
+                        document.getElementById('uploaded-files')
+                            .removeAttribute(
+                                'hidden')
+
+
+                        let response = await makeRequest('GET', window
+                            .location.toString() +
+                            'files/process?dry_run=1&media_type=' +
+                            document.getElementById('media-type').value)
+
+                        // Begin accessing JSON data here
+                        var data = JSON.parse(response)
+
+                        document.getElementById('plex-url').setAttribute(
+                            'href', data
+                            .plex_url)
+                        console.log(data)
+
+                        data.files.forEach((file) => {
+                            var li = document.createElement('li')
+                            li.innerText = file
+                            document.getElementById(
+                                    "uploaded-files-list")
+                                .append(li)
+                        })
+                        data.errors.forEach((error) => {
+                            var li = document.createElement('li')
+                            li.innerText = error
+                            document.getElementById("errors-list")
+                                .append(li)
+                        })
+
+                    }
 
                 });
             }
