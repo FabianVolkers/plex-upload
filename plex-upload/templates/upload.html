@@ -6,6 +6,7 @@
 
     <!-- 1 -->
     <link href="{{ url_for('static', filename='css/dropzone.css') }}" type="text/css" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/basic.css') }}" type="text/css" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/styles.css') }}" type="text/css" rel="stylesheet" />
 
     <!-- 2 -->
@@ -15,34 +16,8 @@
 <body>
     <div id="wrapper">
 
-
-        <div id="explanation">
-            <div id="movies">
-                <h2>Movies</h2>
-                <pre>
-            <code>
-                /Avatar (2009)
-                    Avatar (2009).mkv
-                /Batman Begins (2005)
-                    Batman Begins (2005).mp4
-                    Batman Begins (2005).en.srt
-                    poster.jpg
-            </code>
-        </pre>
-            </div>
-            <div id="tv">
-                <h2>TV Shows</h2>
-                <pre>
-            <code>
-                /Rick and Morty
-                    /Season 02
-                        Rick and Morty - s02e01.avi
-                        Rick and Morty - s02e02.mkv
-                        Rick and Morty - s02e03.m4v
-            </code>
-        </pre>
-            </div>
-
+        <div id="header">
+            <h1>Plex Upload</h1>
         </div>
         <!-- 3 -->
         <div id="dropzone-div">
@@ -62,12 +37,12 @@
 
         <div hidden id="uploaded-files">
             <h2>Uploaded Files</h2>
+            <p id="tv-notice" style="display: none;">Please check if the detected episodes match the files you uploaded and click confirm. Any errors will be ignored</p>
+            <p id="movie-notice" style="display: none;">The following files have been uploaded to Plex. Any errors will need to be resolved manually. Ping Fabi and ask him nicely to move the files manually.</p>
             <ul id="uploaded-files-list">
-
             </ul>
             <h3>Errors</h3>
             <ul id="errors-list">
-
             </ul>
             <form action="/files/process" id="confirm-parsing-form">
                 <input type='hidden' name='dry_run' value='0' />
@@ -78,10 +53,44 @@
         </div>
         <div hidden id="processed-files">
             <h2>Processed Files</h2>
+            <p>The following files have been uploaded to Plex. Ping Fabi to resolve any errors</p>
             <ul id="processed-files-list">
-
             </ul>
             <p><a id="plex-url">View on Plex</a> (could take a few minutes to show up)</p>
+        </div>
+        <div id="explanation">
+            <h2>File Names</h2>
+            <p>
+                In order to ensure smooth uploads please use these file naming conventions for any uploads. 
+                For movies, the name and the year should be in the filename, for tv shows, the show name and episode number are important.
+                It does not matter if there is more information in the name (e.g. 1080p, webrip, etc..), but these things have to be provided for the files to automatically land in Plex.
+            </p>
+            <div id="movies">
+                <h3>Movies</h2>
+                <pre>
+            <code>
+/The Big Lebowski (1998)
+    The Big Lebowski (1998).mkv
+/Pulp Fiction (1994)
+    Pulp Fiction (1994).mp4
+    Pulp Fiction (1994).en.srt
+    poster.jpg
+            </code>
+        </pre>
+            </div>
+            <div id="tv">
+                <h3>TV Shows</h2>
+                <pre>
+            <code>
+/Rick and Morty
+    /Season 02
+        Rick and Morty - s02e01.avi
+        Rick and Morty - s02e02.mkv
+        Rick and Morty - s02e03.m4v
+            </code>
+        </pre>
+            </div>
+
         </div>
     </div>
     <script>
@@ -161,9 +170,6 @@
                     if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length ===
                         0) {
 
-
-                        console.log(this.getUploadingFiles())
-                        console.log(this.getQueuedFiles())
                         removeAllChildNodes(document.getElementById(
                             "uploaded-files-list"))
                         removeAllChildNodes(document.getElementById(
@@ -176,6 +182,9 @@
                             document.getElementById('confirm-parsing-form')
                                 .style =
                                 "display: none;"
+                            document.getElementById('movie-notice').style = "display: block;"
+                        } else {
+                            document.getElementById('tv-notice').style = "display: block;"
                         }
 
                         document.getElementById('uploaded-files')

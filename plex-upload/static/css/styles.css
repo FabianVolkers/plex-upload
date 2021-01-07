@@ -6,8 +6,25 @@ body {
     max-width: 80vw;
     margin-left: 10vw;
 }
+
+#header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    background-color: powderblue;
+    height: 60px;
+    padding-left: 10vw;
+
+}
+
+h1 {
+    margin-block-start: 10px;
+}
 #movies, #tv {
     float: left;
+    width: 30vw;
+    margin-left: 8vw;
 }
 
 #tv {
@@ -15,5 +32,18 @@ body {
 }
 
 #dropzone-div {
+    margin-top: 80px;
     clear: both;
+}
+
+#media-type {
+    font-size: 1em;
+}
+
+.dropzone {
+    border-style: dashed;
+    border-color: deepskyblue;
+    border-radius: 10px;
+    background-color: rgb(230, 243, 250);
+    min-height: 170px;
 }
