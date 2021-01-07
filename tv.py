@@ -89,7 +89,7 @@ def tvnamer(paths):
     return episodes_found
 
 
-def detect_shows(path):
+def detect_shows(path, dry_run):
     Config.update(defaults)
     #Config['verbose'] = True
     Config['force_name'] = None
@@ -98,6 +98,7 @@ def detect_shows(path):
     Config['always_rename'] = True
     Config['recursive'] = True
     Config['filename_with_episode'] = '%(seriesname)s - s%(seasonnumber)02de%(episode)s - %(episodename)s%(ext)s'
+    Config['dry_run'] = dry_run
 
     extras = find_extras(path)
     print(extras)
