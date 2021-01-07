@@ -41,7 +41,7 @@
 
     </div>
     <!-- 3 -->
-    <form action="/upload" method="POST" class="dropzone" id="uploadFiles">
+    <form action="/files/upload" method="POST" class="dropzone" id="uploadFiles">
         <label for="media-type">Media Type</label>
         <select name="media-type" id="media-type">
             <option value="tv">TV Show</option>
@@ -58,7 +58,7 @@
         <ul id="uploaded-files-list">
 
         </ul>
-        <form action="/process" id="confirm-parsing-form">
+        <form action="/files/process" id="confirm-parsing-form">
             <input type='hidden' name='dry_run' value='0' />
             <input type='hidden' name='media_type' value='tv' />
             <input type="submit" id="confirm-parsing-btn" value="Confirm"/>
@@ -83,7 +83,7 @@
                                 'hidden')
 
             var request = new XMLHttpRequest()
-            request.open('GET', window.location.toString() + 'process?dry_run=0&media_type=' +
+            request.open('GET', window.location.toString() + 'files/process?dry_run=0&media_type=' +
                 document.getElementById('media-type').value, true)
 
             request.onload = function () {
@@ -118,7 +118,7 @@
                     this.on("completemultiple", function (files) {
                         var request = new XMLHttpRequest()
                         request.open('GET', window.location.toString() +
-                            'process?dry_run=1&media_type=' +
+                            'files/process?dry_run=1&media_type=' +
                             document.getElementById('media-type').value, true)
 
                         request.onload = function () {
