@@ -9,7 +9,7 @@ from tvnamer.tvnamer_exceptions import (NoValidFilesFoundError,
                                         SkipBehaviourAbort, UserAbort)
 from werkzeug.utils import secure_filename
 
-from .tv import detect_shows
+from .tv import detect_shows, errors
 
 bp = Blueprint('files', __name__, url_prefix='/files')
 
@@ -117,7 +117,7 @@ def process_uploads(media_type=None):
         
         return {
             "files": episodes_response,
-            "errors": [],
+            "errors": errors,
             "plex_url": current_app.config['PLEX_TV_URL']
             }
 
