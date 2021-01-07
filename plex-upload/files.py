@@ -98,7 +98,7 @@ def process_uploads(media_type=None):
         if not dry_run:
 
             for episode in episodes:
-                if episode.generatedfilename:
+                if hasattr(episode, 'generatedfilename'):
                     
                     dest_dir = os.path.join(
                         TV_SHOWS,
