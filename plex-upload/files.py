@@ -33,7 +33,7 @@ def upload():
             print(filename)
 
         dirs = filename.split('/')
-        
+
         if len(dirs) > 1:
             os.makedirs(os.path.join(UPLOAD_FOLDER, "/".join(dirs[:-1])), exist_ok=True)
 
@@ -41,17 +41,17 @@ def upload():
         if file and filename:
             file.save(os.path.join(UPLOAD_FOLDER, filename))
 
-    #process_uploads(media_type=media_type)
-
     return("Uploaded Files")
 
 @bp.route('/process', methods=['GET'])
 def process_uploads(media_type=None):
+    
     # connect google drive / plex library folder
     if media_type == None:
         media_type = request.args['media_type']
     
     dry_run = bool(request.args['dry_run'])
+
     #media_type = 'movie' #request.data['media_type']
     UPLOADS = os.path.join(current_app.config['UPLOAD_FOLDER'], media_type)
     MOVIES = current_app.config['PLEX_MOVIE_FOLDER']
@@ -77,12 +77,18 @@ def process_uploads(media_type=None):
             }
 
     elif media_type == 'tv':
+
         # Detect tv show using tvnamer
+        episodes_response = []
         try:
             episodes = detect_shows(UPLOADS, dry_run)
-            episodes_response = [episode.generateFilename() for episode in episodes]
+            
+            for episode in episodes:
+                if hasattr(episode, 'generatedfilename'):
+                    episodes_response.append(episode.generatedfilename)
+
         except NoValidFilesFoundError:
-            return("No valid files were supplied")
+            print("No valid files were supplied")
         except UserAbort as errormsg:
             return(errormsg)
         except SkipBehaviourAbort as errormsg:
@@ -114,7 +120,7 @@ def process_uploads(media_type=None):
         for dir in os.listdir(UPLOADS):
             if os.path.isdir(dir) and not os.listdir(os.path.join(UPLOADS, dir)):
                 shutil.rmtree(dir)
-        
+
         return {
             "files": episodes_response,
             "errors": errors,
