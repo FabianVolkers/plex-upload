@@ -25,7 +25,8 @@ TVNAMER_API_KEY = "fb51f9b848ffac9750bada89ecba0225"
 errors = []
 
 def warn(text):
-    errors.append(text)
+    if text not in errors:
+        errors.append(text)
 
 
 tvnamer.utils.warn = warn
