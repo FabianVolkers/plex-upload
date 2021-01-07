@@ -53,16 +53,58 @@
             <input type="submit" value="Upload" />
         </div>
     </form>
-    <div id="uploaded-files">
-        <h2>Processed Files</h2>
-        <ul id="file-list">
+    <div hidden id="uploaded-files">
+        <h2>Uploaded Files</h2>
+        <ul id="uploaded-files-list">
 
         </ul>
+        <form action="/process" id="confirm-parsing-form">
+            <input type='hidden' name='dry_run' value='0' />
+            <input type='hidden' name='media_type' value='tv' />
+            <input type="submit" id="confirm-parsing-btn" value="Confirm"/>
+        </form>
+        
+    </div>
+    <div hidden id="processed-files">
+        <h2>Processed Files</h2>
+        <ul id="processed-files-list">
+
+        </ul>
+        <p><a id="plex-url">View on Plex</a> (could take a few minutes to show up)</p>
     </div>
 
     <script>
         //Dropzone.autoDiscover = false;
+        document.getElementById('confirm-parsing-btn').addEventListener("click", function (event) {
+            event.preventDefault()
+            document.getElementById('uploaded-files').setAttribute(
+                                'hidden', true)
+            document.getElementById('processed-files').removeAttribute(
+                                'hidden')
 
+            var request = new XMLHttpRequest()
+            request.open('GET', window.location.toString() + 'process?dry_run=0&media_type=' +
+                document.getElementById('media-type').value, true)
+
+            request.onload = function () {
+                // Begin accessing JSON data here
+                var data = JSON.parse(this.response)
+
+                document.getElementById('plex-url').setAttribute('href', data.plex_url)
+                console.log(data)
+                data.files.forEach((file) => {
+                    document.getElementById("processed-files-list").append(
+                        document.createElement('li').innerHTML = file
+                    )
+                    // Log each movie's title
+                    //console.log(movie.title)
+                })
+            }
+
+            // Send request
+            request.send()
+
+        })
         Dropzone.options.uploadFiles = {
             init: function () {
                 this.on("sendingmultiple", function (files) {
@@ -75,19 +117,33 @@
                     }
                     this.on("completemultiple", function (files) {
                         var request = new XMLHttpRequest()
-                        request.open('GET', window.location.toString() + 'process?media_type=' +
+                        request.open('GET', window.location.toString() +
+                            'process?dry_run=1&media_type=' +
                             document.getElementById('media-type').value, true)
 
                         request.onload = function () {
+                            if (document.getElementById('media-type').value =='movie') {
+                                document.getElementById('confirm-parsing-form').style = "display: none;"
+                            }
+                            document.getElementById('uploaded-files').removeAttribute(
+                                'hidden')
                             // Begin accessing JSON data here
                             var data = JSON.parse(this.response)
 
-                            data.forEach((file) => {
-                                document.getElementById("file-list").append(
-                                    document.createElement('li').innerHTML = file
+                            document.getElementById('plex-url').setAttribute('href', data
+                                .plex_url)
+                            console.log(data)
+                            data.files.forEach((file) => {
+                                document.getElementById("uploaded-files-list").append(
+                                    document.createElement('li').innerHTML =
+                                    file
                                 )
-                                // Log each movie's title
-                                //console.log(movie.title)
+                            })
+                            data.errors.forEach((error) => {
+                                document.getElementById("uploaded-files-list").append(
+                                    document.createElement('li').innerHTML =
+                                    error
+                                )
                             })
                         }
 
