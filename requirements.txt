@@ -1,0 +1,16 @@
+certifi==2020.12.5
+chardet==4.0.0
+click==7.1.2
+Flask==1.1.2
+Flask-Uploads==0.2.1
+idna==2.10
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe==1.1.1
+requests==2.25.1
+requests-cache==0.5.2
+rope==0.18.0
+tvdb-api==3.0.2
+tvnamer==3.0.2
+urllib3==1.26.2
+Werkzeug==1.0.1
