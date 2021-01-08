@@ -3,3 +3,8 @@ venv
 dev-dir
 __pycache__
 .vscode
+config.example.py
+docker-compose.yml
+README.md
+.gitignore
+instance
