@@ -3,6 +3,7 @@ chardet==4.0.0
 click==7.1.2
 Flask==1.1.2
 Flask-Uploads==0.2.1
+get-docker-secret==1.0.1
 idna==2.10
 itsdangerous==1.1.0
 Jinja2==2.11.2

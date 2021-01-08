@@ -8,3 +8,13 @@ services:
     volumes:
       - ./dev-dir/plex:/plex  
       - ./dev-dir/uploads:/uploads
+    environment:
+      PLEX_TV_URL: "url_to_recently_added_tv"
+      PLEX_MOVIE_URL: "url_to_recently_added_movies"
+    secrets:
+      - flask_secret_key
+
+secrets:
+  flask_secret_key:
+    external:
+      true
