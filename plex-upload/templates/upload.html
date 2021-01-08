@@ -143,7 +143,7 @@
 
         function removeAllChildNodes(parent) {
             while (parent.firstChild) {
-                console.log(parent.removeChild(parent.firstChild))
+                parent.removeChild(parent.firstChild)
             }
         }
 
@@ -172,18 +172,23 @@
         }
 
         Dropzone.options.uploadFiles = {
+            uploadMultiple: false,
+            chunking: true,
+            forceChunking: true,
+            maxFilesize: null,
             init: function () {
-                this.on("sendingmultiple", function (files) {
+                this.on("sending", function (file) {
                     document.getElementById(`tmp-path`).innerHTML = ''
-                    for (let i = 0; i < files.length; i++) {
-                        file = files[i]
-                        console.log(file.fullPath)
-                        document.getElementById(`tmp-path`).innerHTML +=
-                            `<input type="hidden" name="path-${i}" value="${file.fullPath}" />`
-                    }
-                });
+                    document.getElementById(`tmp-path`).innerHTML +=
+                        `<input type="hidden" name="path" value="${file.fullPath}" />`
 
-                this.on("completemultiple", async function (files) {
+                });
+                this.on("uploadprogress", function (file, progress, bytesSent) {
+                    progress = bytesSent / file.size * 100;
+                    file.previewElement.querySelectorAll("[data-dz-uploadprogress]")[0].style.width =
+                        `${progress}%`
+                })
+                this.on("complete", async function (file) {
                     if (this.getQueuedFiles().length === 0 && this.getUploadingFiles().length ===
                         0) {
 
